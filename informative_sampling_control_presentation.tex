@@ -55,13 +55,14 @@
 
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Xf}{\mathcal{X}_{\mathrm{feas}}}
+\newcommand{\Xr}{\mathcal{X}_{\mathrm{rf}}}
 \newcommand{\D}{\mathcal{D}}
 \newcommand{\risk}{\mathcal{R}_{\mathrm{cl}}}
 \newcommand{\smallsource}[1]{\vfill\begin{flushleft}\color{Slate}\tiny #1\end{flushleft}}
 \newcommand{\pill}[2]{\tikz[baseline=(X.base)]\node[rounded corners=2pt,fill=#1,inner xsep=5pt,inner ysep=2pt] (X) {\scriptsize\color{Ink}#2};}
 
-\title{\fontsize{24}{25}\selectfont Prior-informed data generation\\for learned controllers}
-% \subtitle{How can mathematical structure buy sample efficiency?}
+\title{Prior-informed data generation\\for learned controllers}
+\subtitle{How can mathematical structure buy sample efficiency?}
 \author{Pietro Gori}
 \institute{University of Pisa}
 \date{October 2026}
@@ -122,116 +123,146 @@
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{Why random sampling misses what matters}
+\begin{frame}{The same label budget can produce very different accuracy}
+\small
+Consider the one-dimensional explicit control law
+\[
+  \pi^\star(x)=\operatorname{sat}_{[-1,1]}(-2x),
+\]
+whose active set changes at $x=\pm 0.5$. In both cases below, the learner uses piecewise-linear interpolation of the same number of exact labels.
+
 \begin{columns}[T,onlytextwidth]
 \column{0.47\textwidth}
 \centering
-\textbf{Passive sampling}
+\textbf{Uniform state samples}
 
-\begin{tikzpicture}[scale=.78]
-  \fill[Sky] plot[smooth cycle,tension=.8] coordinates {(-3,-.7) (-2.2,1.7) (0.4,2.0) (2.8,.8) (2.4,-1.5) (-.3,-2.0)};
-  \draw[Teal,very thick] plot[smooth cycle,tension=.8] coordinates {(-3,-.7) (-2.2,1.7) (0.4,2.0) (2.8,.8) (2.4,-1.5) (-.3,-2.0)};
-  \draw[Coral,very thick] (-2.4,-1.0) .. controls (-.8,-.15) and (.4,.3) .. (2.35,1.2);
-  \foreach \p in {(-2.3,.1),(-1.8,1.1),(-1.2,-.9),(-.9,.4),(-.1,1.25),(.35,-1.1),(.8,.7),(1.2,-.2),(1.75,.3),(2.0,-.9)}
-    \fill[Ink] \p circle (2.0pt);
-  \node[font=\scriptsize,Teal] at (-1.9,2.2) {$\Xf$};
-  \node[font=\scriptsize,Coral,rotate=17] at (1.25,1.05) {policy kink / active-set change};
+\begin{tikzpicture}
+\begin{axis}[
+  width=6.0cm,height=3.55cm,
+  xmin=-2.1,xmax=2.1,ymin=-1.25,ymax=1.25,
+  axis lines=middle,xtick={-2,-1,-.5,0,.5,1,2},
+  xticklabels={$-2$,$-1$,$-.5$,$0$,$.5$,$1$,$2$},
+  ytick={-1,0,1},tick label style={font=\tiny},
+  xlabel={$x$},ylabel={$u$},label style={font=\scriptsize},
+  legend style={font=\tiny,draw=none,fill=none,at={(0.03,0.03)},anchor=south west,row sep=-1pt},
+  every axis x label/.style={at={(ticklabel* cs:1)},anchor=west},
+  every axis y label/.style={at={(ticklabel* cs:1)},anchor=south},
+  clip=false]
+  \addplot[Ink,very thick] coordinates {(-2,1)(-.5,1)(.5,-1)(2,-1)};
+  \addlegendentry{$\pi^\star$}
+  \addplot[Coral,thick,dashed] coordinates {(-2,1)(-1.333,1)(-.667,1)(0,0)(.667,-1)(1.333,-1)(2,-1)};
+  \addlegendentry{interpolant}
+  \addplot[only marks,mark=*,mark size=1.8pt,Coral] coordinates {(-2,1)(-1.333,1)(-.667,1)(0,0)(.667,-1)(1.333,-1)(2,-1)};
+  \draw[Slate,densely dotted] (axis cs:-.5,-1.18)--(axis cs:-.5,1.18);
+  \draw[Slate,densely dotted] (axis cs:.5,-1.18)--(axis cs:.5,1.18);
+\end{axis}
 \end{tikzpicture}
 
-Uniform coverage spends many labels in smooth interiors.
+The interpolant crosses each kink incorrectly.
 
 \column{0.47\textwidth}
 \centering
 \textbf{Structure-informed sampling}
 
-\begin{tikzpicture}[scale=.78]
-  \fill[Sky] plot[smooth cycle,tension=.8] coordinates {(-3,-.7) (-2.2,1.7) (0.4,2.0) (2.8,.8) (2.4,-1.5) (-.3,-2.0)};
-  \draw[Teal,very thick] plot[smooth cycle,tension=.8] coordinates {(-3,-.7) (-2.2,1.7) (0.4,2.0) (2.8,.8) (2.4,-1.5) (-.3,-2.0)};
-  \draw[Coral,very thick] (-2.4,-1.0) .. controls (-.8,-.15) and (.4,.3) .. (2.35,1.2);
-  \foreach \p in {(-2.15,-.86),(-1.55,-.55),(-.95,-.25),(-.35,.02),(.22,.25),(.8,.53),(1.35,.78),(1.9,1.03),(2.47,-1.28),(-2.6,1.1)}
-    \fill[Coral] \p circle (2.25pt);
-  \node[font=\scriptsize,Teal] at (-1.9,2.2) {$\Xf$};
-  \node[font=\scriptsize,Coral,rotate=17] at (1.25,1.05) {policy kink / active-set change};
+\begin{tikzpicture}
+\begin{axis}[
+  width=6.0cm,height=3.55cm,
+  xmin=-2.1,xmax=2.1,ymin=-1.25,ymax=1.25,
+  axis lines=middle,xtick={-2,-1,-.5,0,.5,1,2},
+  xticklabels={$-2$,$-1$,$-.5$,$0$,$.5$,$1$,$2$},
+  ytick={-1,0,1},tick label style={font=\tiny},
+  xlabel={$x$},ylabel={$u$},label style={font=\scriptsize},
+  every axis x label/.style={at={(ticklabel* cs:1)},anchor=west},
+  every axis y label/.style={at={(ticklabel* cs:1)},anchor=south},
+  clip=false]
+  \addplot[Coral,very thick,dashed] coordinates {(-2,1)(-.5,1)(-.25,.5)(0,0)(.25,-.5)(.5,-1)(2,-1)};
+  \addplot[Ink,thick] coordinates {(-2,1)(-.5,1)(.5,-1)(2,-1)};
+  \addplot[only marks,mark=*,mark size=1.8pt,Coral] coordinates {(-2,1)(-.5,1)(-.25,.5)(0,0)(.25,-.5)(.5,-1)(2,-1)};
+  \draw[Slate,densely dotted] (axis cs:-.5,-1.18)--(axis cs:-.5,1.18);
+  \draw[Slate,densely dotted] (axis cs:.5,-1.18)--(axis cs:.5,1.18);
+\end{axis}
 \end{tikzpicture}
 
-Concentrate labels near changes, boundaries, and likely trajectories.
+Sampling the two active-set boundaries recovers $\pi^\star$ exactly in this toy example.
 \end{columns}
 
-\vspace{0.2cm}
+\vspace{0.08cm}
 \begin{center}
-\colorbox{PaleGold}{\parbox{0.88\textwidth}{\centering\textbf{The design variable is the data distribution, not only the model architecture.}}}
+\colorbox{PaleGold}{\parbox{0.88\textwidth}{\centering\textbf{Both datasets use $N=7$ OCP solves. Structure changes where the labels are placed.}}}
 \end{center}
-\note{The red curve is schematic. For parametric programs, active-set changes often induce a piecewise-smooth policy. These regions can dominate approximation error even when they occupy little volume.}
+\note{This example is deliberately elementary and exact. The expert is a saturated linear feedback law. Uniform samples miss the two kinks, whereas samples placed at the active-set boundaries recover the piecewise-affine law exactly under linear interpolation. The example illustrates the possible gain without claiming that the same exact recovery holds for nonlinear MPC.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{Mathematical statement}
-For an initial state $x$, define the parametric optimal-control problem
+\begin{frame}{From an optimal-control problem to a feedback policy}
+Consider the constrained system
+\[
+  x_{k+1}=f(x_k,u_k),\qquad x_k\in\mathcal X,\quad u_k\in\mathcal U.
+\]
+At each measured state $x$, the controller solves the parametric problem
 \begin{align*}
   z^\star(x)\in\arg\min_z\quad & J(z;x) \\
   \text{s.t.}\quad & c(z;x)=0, \qquad g(z;x)\le 0,
 \end{align*}
-and extract the expert policy $\pi^\star(x)=E z^\star(x)$.
-
-Given a labeling budget $N$, choose the sampling law $q$ and fit $\pi_\theta$:
+where $z$ contains the predicted states and inputs. The first optimal input defines the expert feedback law
 \[
-  x_i\sim q,\qquad
-  \D_N(q)=\{(x_i,\pi^\star(x_i))\}_{i=1}^{N},\qquad
-  \widehat\theta(q)=\arg\min_\theta \widehat L(\theta;\D_N(q)).
+  \pi^\star(x)=E z^\star(x)=u_0^\star(x).
 \]
 
-The outer problem asks which distribution produces the best closed-loop controller:
+Repeated evaluation of this law produces the \textbf{expert closed loop}
 \[
-  q^\star\in\arg\min_{q\in\mathcal Q}
-  \mathbb E_{\D_N(q)}\!\left[\risk\bigl(\pi_{\widehat\theta(q)}\bigr)\right].
+  x_{k+1}^\star=f\!\left(x_k^\star,\pi^\star(x_k^\star)\right).
 \]
-
-\begin{center}
-\pill{Sky}{bilevel optimization}\quad
-\pill{PaleGold}{optimal experimental design}\quad
-\pill{Sky}{sequential decision making}
-\end{center}
-\note{This is the bridge to the mathematics department. The inner learner depends on samples from q, and closed-loop risk depends on the trained policy. Exact solution is impossible, so the research is to derive useful relaxations and guarantees.}
+After training, the approximation $\pi_\theta$ defines a second closed loop
+\[
+  x_{k+1}^\theta=f\!\left(x_k^\theta,\pi_\theta(x_k^\theta)\right).
+\]
+\note{This slide introduces every object used later. A feedback policy maps the current state to the first optimal input. The phrase closed loop refers to the dynamics obtained after substituting that feedback law into the plant.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{What should ``informative'' mean?}
-Pointwise prediction error is only one candidate:
+\begin{frame}{The dataset-design problem}
+\small
+Choose $q\in\mathcal P(\Xr)$, draw $N$ states, and fit the policy by empirical risk minimization:
 \[
-  R_{\mathrm{sup}}(\theta;p)
-  =\mathbb E_{x\sim p}\!\left[\|\pi_\theta(x)-\pi^\star(x)\|^2\right].
+\begin{gathered}
+  x_i\sim q,\qquad \D_N(q)=\{(x_i,\pi^\star(x_i))\}_{i=1}^{N},\\[0.25em]
+  \widehat\theta(\D_N)
+  \in\arg\min_\theta\frac1N\sum_{i=1}^{N}
+  \|\pi_\theta(x_i)-\pi^\star(x_i)\|^2.
+\end{gathered}
 \]
-
-For control, a more relevant objective combines trajectory performance and risk:
+For a horizon $T$, assume $x_k^\theta\in\Xr$ for $k<T$ and define the state distribution induced by the learned closed loop:
 \[
-  \risk(\pi_\theta)
-  =\underbrace{\mathbb E_{x_0\sim\mu_0}\!\left[J_{\mathrm{cl}}(\pi_\theta;x_0)-J_{\mathrm{cl}}(\pi^\star;x_0)\right]}_{\text{performance gap}}
-  +\lambda\,\underbrace{\mathbb P_{\mu_0}\!\left(\exists k:\,x_k\notin\mathcal X\ \text{or}\ u_k\notin\mathcal U\right)}_{\text{violation probability}}.
+  d_\theta^T=\frac1T\sum_{k=0}^{T-1}\operatorname{Law}(x_k^\theta),
+  \qquad x_{k+1}^\theta=f(x_k^\theta,\pi_\theta(x_k^\theta)),\quad x_0\sim\mu_0.
 \]
-
-An informative dataset should therefore resolve states that are
-\begin{itemize}
-  \item likely under the learned closed loop,
-  \item locally difficult because the policy changes rapidly,
-  \item consequential because the feasibility or stability margin is small.
-\end{itemize}
-
-\smallsource{Sequential policies induce their own state distribution: Ross, Gordon and Bagnell, AISTATS, 2011.}
-\note{This slide prevents the discussion from collapsing into generic active learning. In control, the data distribution, the learned policy, and the state occupancy are coupled.}
+The closed-loop imitation risk and the resulting dataset-design problem are
+\[
+\begin{aligned}
+  R_T(\theta)&=\mathbb E_{x\sim d_\theta^T}
+  \|\pi_\theta(x)-\pi^\star(x)\|^2,\\[0.35em]
+  q_N^\star&\in\arg\min_{q\in\mathcal P(\Xr)}
+  \mathbb E_{\D_N(q)}\!\left[R_T\!\left(\widehat\theta(\D_N(q))\right)\right].
+\end{aligned}
+\]
+\smallsource{The occupancy measure formalizes the distribution shift of sequential imitation learning: Ross, Gordon and Bagnell, AISTATS, 2011.}
+\note{This is the precise outer problem. The sampling law determines the dataset, the dataset determines the trained parameters, the trained policy determines the visited-state distribution, and that distribution determines the relevant approximation error.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
 \begin{frame}{Prior information already available in optimal control}
 \small
+\setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.18}
 \begin{tabular}{>{\bfseries\color{Teal}}p{0.22\textwidth} p{0.31\textwidth} p{0.39\textwidth}}
 \toprule
 Structure & Mathematical object & Possible use in sampling \\
 \midrule
-Feasibility & $\Xf=\{x:\exists z\; c=0,\ g\le0\}$ & Reject impossible labels and allocate samples near $\partial\Xf$ \\
+Feasible domain & $\mathcal X_N$ from slide 4 and $\Xr\subseteq\mathcal X_N$ & Restrict $q$ to the chosen recursively feasible training set $\Xr$ \\
 Active constraints & active set $\mathcal A(x)$ and multipliers $\lambda^\star(x)$ & Detect changes of local policy regime \\
 Sensitivity & $D_x z^\star(x)$ from the KKT equations & Augment labels and measure local complexity \\
-Closed-loop dynamics & occupancy measure $\rho_{\pi}(x)$ & Focus on states the deployed policy will visit \\
+Closed-loop dynamics & occupancy measure $d_\theta^T$ & Evaluate error on states the deployed policy will visit \\
 Certificates & Lyapunov, barrier, terminal-set, or robustness margins & Weight rare states with severe consequences \\
 \bottomrule
 \end{tabular}
@@ -242,76 +273,64 @@ Certificates & Lyapunov, barrier, terminal-set, or robustness margins & Weight r
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{A distribution-design problem}
-Let $p$ denote the deployment distribution and $q$ the distribution used to query the expert.
+\begin{frame}{The feasible domain restricts the sampling law}
+The OCP in slide 4 defines its $N$-step feasible set
+\[
+  \mathcal X_N=\left\{x\in\mathcal X:\exists z\ \text{such that}\ c(z;x)=0,\ g(z;x)\le0\right\}.
+\]
+For controller learning, choose a domain $\Xr\subseteq\mathcal X_N$ on which the exact MPC law is recursively feasible, and impose
+\[
+  q\in\mathcal P(\Xr),\qquad \operatorname{supp}(q)\subseteq\Xr.
+\]
+When $0<\operatorname{vol}(\Xr)<\infty$, the natural baseline is
+\[
+  q_{\mathrm{unif}}(x)=\frac{\mathbf 1_{\Xr}(x)}{\operatorname{vol}(\Xr)}.
+\]
+Uniform sampling covers volume, but the objective on slide 5 depends on how difficult $\pi^\star$ is to approximate and on which states $d_\theta^T$ visits.
+
+\vspace{0.2cm}
+\colorbox{PaleGold}{\parbox{0.9\textwidth}{\centering
+$\Xr$ determines \textbf{where} labels are admissible. The remaining problem is \textbf{where inside $\Xr$} the $N$ labels should be placed.}}
+
+\color{Slate}\scriptsize Recursive feasibility of the exact MPC law on $\Xr$ does not automatically transfer to an unconstrained neural approximation.
+\note{This slide connects the sampling law q directly to the feasible set of the OCP. It also makes the important distinction between exact MPC recursive feasibility and the absence of an automatic guarantee for a plain neural policy.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+\begin{frame}{Active-set geometry explains nonuniform difficulty}
+Let $\mathcal A(x)$ denote the active inequality constraints and let $F_y$ denote the Jacobian of the reduced KKT system. Define a regular active-set region
+\[
+  \mathcal R_j=\left\{x\in\Xr:\mathcal A(x)=\mathcal A_j,\ F_y(y^\star(x),x)\ \text{nonsingular}\right\}.
+\]
+Under LICQ, strict complementarity, and a second-order sufficient condition, $z^\star(x)$ and $\pi^\star(x)$ are continuously differentiable in the interior of $\mathcal R_j$.
+
+The critical set is
+\[
+  \mathcal B=Xr\setminus\bigcup_j\operatorname{int}(\mathcal R_j),
+\]
+which contains active-set transitions and points where the KKT regularity condition fails.
 
 \begin{columns}[T,onlytextwidth]
-\column{0.56\textwidth}
-\textbf{Constrained design}
-\[
-\begin{aligned}
-\min_{q\in\mathcal P(\Xf)}\quad
-  & \Phi(q;\pi_\theta) \\
-\text{s.t.}\quad
-  & D(q\|q_0)\le \varepsilon,\\
-  & q(x)\ge \underline q(x)\quad x\in\mathcal X_{\mathrm{critical}}.
-\end{aligned}
-\]
+\column{0.47\textwidth}
+\textbf{Inside one region}
 
-$D$ may be a KL, Wasserstein, or moment constraint. The lower bound prevents collapse onto a small region.
+The policy is locally smooth. Sensitivities predict nearby labels and large uniform redundancy is possible.
 
-\column{0.39\textwidth}
-\textbf{Correcting sampling bias}
-\[
- R_{p}(\theta)
- =\mathbb E_{x\sim q}\!\left[
- \frac{p(x)}{q(x)}\,\ell_\theta(x)
- \right].
-\]
+\column{0.47\textwidth}
+\textbf{Near $\mathcal B$}
 
-The weights preserve the target risk, but highly concentrated $q$ can produce large variance.
-
-\vspace{0.25cm}
-\colorbox{PaleGold}{\parbox{0.92\linewidth}{\centering The trade-off is \textbf{informativeness versus coverage}.}}
+The derivative can change discontinuously. Additional exact labels are needed to identify the neighboring regimes.
 \end{columns}
-\note{This is where statistics and probability enter naturally. Distribution shaping changes both bias and variance. Coverage constraints are also safety devices because purely greedy active learning can ignore important regions.}
+
+\vspace{0.2cm}
+\colorbox{PaleGold}{\parbox{0.9\textwidth}{\centering Slide 3 is the one-dimensional case: $\mathcal B=\{-0.5,0.5\}$.}}
+\note{This slide provides the mathematical reason for nonuniform sampling. It does not claim that a nonlinear MPC law has a global finite polyhedral partition. The statement is local and conditional on standard parametric-NLP regularity assumptions.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{A concrete acquisition rule}
-At iteration $t$, assign each feasible candidate state a score
-\[
-\boxed{
-\begin{aligned}
-  a_t(x)={}&
-  \alpha\,\underbrace{U_t(x)}_{\text{model uncertainty}}
-  +\beta\,\underbrace{\|D_x\pi^\star(x)\|}_{\text{local sensitivity}}
-  +\gamma\,\underbrace{B(x)}_{\text{boundary or active-set score}}\\[-0.1em]
-  &+\delta\,\underbrace{\rho_{\pi_t}(x)}_{\text{closed-loop relevance}}
-  +\eta\,\underbrace{S(x)}_{\text{safety consequence}} .
-\end{aligned}
-}
-\]
-
-Turn the score into a regularized sampling law
-\[
-  q_{t+1}(x)
-  =\frac{q_0(x)\exp\!\bigl(a_t(x)/\tau\bigr)}
-  {\int_{\Xf}q_0(\xi)\exp\!\bigl(a_t(\xi)/\tau\bigr)\,d\xi}.
-\]
-
-\begin{itemize}
-  \item $\tau\downarrow 0$: aggressive concentration on high-score states.
-  \item $\tau\uparrow\infty$: recovery of the baseline distribution $q_0$.
-\end{itemize}
-
-\color{Slate}\small This is a starting hypothesis, not a final formula. A mathematical project would identify which terms are necessary, estimable, and theoretically defensible.
-\note{Invite criticism here. The linear score makes the ingredients visible, while the exponential tilt gives a legitimate distribution and a temperature parameter. The collaboration could replace this heuristic with an optimal-design criterion.}
-\end{frame}
-
-% -----------------------------------------------------------------------------
-\begin{frame}{One OCP solve can provide more than one label}
-For fixed active set $\mathcal A$, write the KKT residual
+\begin{frame}{KKT sensitivity gives local information from one solve}
+\small
+Fix $x_i\in\operatorname{int}(\mathcal R_j)$ and write the reduced KKT residual
 \[
 F(y,x)=
 \begin{bmatrix}
@@ -320,31 +339,26 @@ F(y,x)=
 \qquad y=(z,\nu,\lambda_{\mathcal A}).
 \]
 
-If $F_y$ is nonsingular, the implicit-function theorem gives
+If $F_y(y_i^\star,x_i)$ is nonsingular, the implicit-function theorem gives
 \[
-  \frac{d y^\star}{dx}=-F_y^{-1}F_x,
+  D_xy^\star(x_i)=-F_y^{-1}F_x,
   \qquad
-  D_x\pi^\star(x)=E\frac{d z^\star}{dx}.
+  D_x\pi^\star(x_i)=E D_xz^\star(x_i).
 \]
-
-This derivative supports two complementary uses:
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\textbf{Data augmentation}
+The first-order label at a nearby point is therefore
 \[
-\pi^\star(x+\Delta x)\approx
-\pi^\star(x)+D_x\pi^\star(x)\Delta x.
+  \widetilde\pi_i(x_i+\Delta x)
+  =\pi^\star(x_i)+D_x\pi^\star(x_i)\Delta x.
 \]
-\column{0.48\textwidth}
-\textbf{Acquisition}
+If $\pi^\star$ is twice differentiable on the segment and $\|D_x^2\pi^\star\|\le M_j$, Taylor's theorem yields the local error bound
 \[
-\|D_x\pi^\star(x)\|\ \text{and conditioning of }F_y
+  \left\|\pi^\star(x_i+\Delta x)-\widetilde\pi_i(x_i+\Delta x)\right\|
+  \le \frac{M_j}{2}\|\Delta x\|^2.
 \]
-signal regions that need denser sampling.
-\end{columns}
+\color{Slate}\small Thus, one exact OCP solve supplies a label and a locally valid model. The trust region must remain inside the same regular active-set region.
 
-\smallsource{Sensitivity augmentation and predictor-corrector refinement: Krishnamoorthy, IEEE TAC 2022 and IEEE L-CSS 2023.}
-\note{This aligns directly with the user's KKT and gradient work. The derivative is valid only locally under regularity and a fixed active set. Active-set changes are precisely where sampling may need to increase.}
+\vspace{0.08cm}{\color{Slate}\tiny Sensitivity-based augmentation: Krishnamoorthy, IEEE TAC 2022; predictor-corrector refinement: IEEE L-CSS 2023.}
+\note{This slide now follows directly from slides 4 and 8. The KKT system belongs to the same parametric OCP, and its derivative produces a Taylor approximation of the same expert policy. The quadratic remainder bound states exactly when the augmented labels are reliable.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
