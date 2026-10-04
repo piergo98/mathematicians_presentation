@@ -522,7 +522,7 @@ Optimal design & principled criteria for information allocation & classical crit
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{Research questions for a mathematical collaboration}
+\begin{frame}{Research questions for a collaboration}
 \begin{enumerate}
   \item[\color{Teal}\bfseries Q1.] \textbf{Definition.} Which information functional connects a sampling distribution to closed-loop loss, feasibility, or stability?
 
@@ -544,52 +544,16 @@ Optimal design & principled criteria for information allocation & classical crit
 \end{frame}
 
 % -----------------------------------------------------------------------------
-\begin{frame}{A minimal first project}
-\begin{columns}[T,onlytextwidth]
-\column{0.61\textwidth}
-\textbf{Benchmark}
-
-A constrained nonlinear system such as cart-pole, followed by one switched-system or quadrupedal planning example.
-
-\textbf{Four sampling baselines}
-\begin{itemize}
-  \item uniform box sampling with rejection,
-  \item approximately uniform feasible-set sampling,
-  \item active uncertainty sampling,
-  \item the proposed structure-informed adaptive sampler.
-\end{itemize}
-
-\textbf{Fixed budget protocol}
-
-Compare all methods for the same number of exact OCP solves, with identical network capacity and optimization settings.
-
-\column{0.34\textwidth}
-\textbf{Primary outcomes}
-\begin{align*}
-  &\text{closed-loop cost gap},\\
-  &\text{constraint violation rate},\\
-  &\text{feasible initial-state coverage},\\
-  &\text{worst-case policy error},\\
-  &\text{wall-clock data cost}.
-\end{align*}
-
-\vspace{0.15cm}
-\colorbox{Sky}{\parbox{0.92\linewidth}{\centering First target: an empirical result plus one theorem in a tractable special case.}}
-\end{columns}
-\note{Keep the first project controlled. A linear or piecewise-affine case can support theory, while a nonlinear or switched example shows relevance to the user's research.}
-\end{frame}
-
-% -----------------------------------------------------------------------------
 \begin{frame}{Why the problem has real research potential}
 \begin{columns}[T,onlytextwidth]
 \column{0.62\textwidth}
 \small
 \begin{itemize}
   \setlength{\itemsep}{0.12em}
-  \item A 2026 paper still identifies feasible-set sampling as a major bottleneck for approximate MPC and reports an order-of-magnitude speedup for uniform sampling in the linear-polyhedral case.
-  \item Sensitivity-based augmentation already shows that optimization derivatives reduce the number of exact expert evaluations.
-  \item Recent active-learning theory explains why uncertainty and diversity can reduce label complexity, while control papers show gains from prior-informed exploration.
-  \item Active constraint learning in 2026 outperforms random query selection in simulation and hardware experiments.
+  \item Still identifies feasible-set sampling is a major bottleneck for approximate MPC.
+  \item Sensitivity-based augmentation already reduce the number of exact expert evaluations.
+  \item Recent active-learning theory explains why uncertainty and diversity can reduce label complexity.
+  \item Active constraint learning outperforms random query selection in simulation and hardware experiments.
 \end{itemize}
 
 \column{0.33\textwidth}
@@ -749,6 +713,42 @@ Does it scale? & increase state dimension, horizon, and number of modes & favora
 Is the gain real? & repeat over seeds and report confidence intervals & statistically resolved improvement \\
 \bottomrule
 \end{tabular}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+\begin{frame}{Backup: A minimal first project}
+\begin{columns}[T,onlytextwidth]
+\column{0.61\textwidth}
+\textbf{Benchmark}
+
+A constrained nonlinear system such as cart-pole, followed by one switched-system or quadrupedal planning example.
+
+\textbf{Four sampling baselines}
+\begin{itemize}
+  \item uniform box sampling with rejection,
+  \item approximately uniform feasible-set sampling,
+  \item active uncertainty sampling,
+  \item the proposed structure-informed adaptive sampler.
+\end{itemize}
+
+\textbf{Fixed budget protocol}
+
+Compare all methods for the same number of exact OCP solves, with identical network capacity and optimization settings.
+
+\column{0.34\textwidth}
+\textbf{Primary outcomes}
+\begin{align*}
+  &\text{closed-loop cost gap},\\
+  &\text{constraint violation rate},\\
+  &\text{feasible initial-state coverage},\\
+  &\text{worst-case policy error},\\
+  &\text{wall-clock data cost}.
+\end{align*}
+
+\vspace{0.15cm}
+\colorbox{Sky}{\parbox{0.92\linewidth}{\centering First target: an empirical result plus one theorem in a tractable special case.}}
+\end{columns}
+\note{Keep the first project controlled. A linear or piecewise-affine case can support theory, while a nonlinear or switched example shows relevance to the user's research.}
 \end{frame}
 
 \end{document}
