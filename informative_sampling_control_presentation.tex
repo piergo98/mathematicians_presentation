@@ -61,8 +61,7 @@
 \newcommand{\smallsource}[1]{\vfill\begin{flushleft}\color{Slate}\tiny #1\end{flushleft}}
 \newcommand{\pill}[2]{\tikz[baseline=(X.base)]\node[rounded corners=2pt,fill=#1,inner xsep=5pt,inner ysep=2pt] (X) {\scriptsize\color{Ink}#2};}
 
-\title{Prior-informed data generation\\for learned controllers}
-\subtitle{How can mathematical structure buy sample efficiency?}
+\title{\fontsize{24}{25}\selectfont Prior-informed data generation\\for learned controllers}
 \author{Pietro Gori}
 \institute{University of Pisa}
 \date{October 2026}
@@ -194,6 +193,101 @@ Sampling the two active-set boundaries recovers $\pi^\star$ exactly in this toy 
 \end{frame}
 
 % -----------------------------------------------------------------------------
+\begin{frame}{Sampling across active-set regions}
+\small
+Suppose the active-set regions discovered so far form a partition, up to their boundaries,
+\[
+  \Xr=\bigcup_{j=1}^{m}\mathcal R_j,
+  \qquad \operatorname{int}(\mathcal R_i)\cap\operatorname{int}(\mathcal R_j)=\varnothing
+  \quad(i\ne j).
+\]
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\centering
+\textbf{Uniform sampling in $\Xr$}\\[-0.05cm]
+
+\begin{tikzpicture}[x=.88cm,y=.82cm]
+  \begin{scope}
+    \clip (-.15,1.25)--(.45,2.75)--(2.45,3.08)--(4.65,2.88)--(5.55,1.62)--(5.05,.22)--(2.75,.02)--(.35,.25)--cycle;
+    \fill[Sky] (-.3,-.2) rectangle (.9,3.3);
+    \fill[PaleGold] (.9,-.2) rectangle (2.2,3.3);
+    \fill[Coral,opacity=.18] (2.2,-.2) rectangle (2.55,3.3);
+    \fill[Mist] (2.55,-.2) rectangle (3.75,3.3);
+    \fill[Teal,opacity=.14] (3.75,-.2) rectangle (4.65,3.3);
+    \fill[Gold,opacity=.25] (4.65,-.2) rectangle (5.8,3.3);
+    \draw[Slate!70,line width=.7pt] (.9,-.2)--(.9,3.3);
+    \draw[Slate!70,line width=.7pt] (2.2,-.2)--(2.2,3.3);
+    \draw[Coral,line width=1.15pt] (2.55,-.2)--(2.55,3.3);
+    \draw[Slate!70,line width=.7pt] (3.75,-.2)--(3.75,3.3);
+    \draw[Slate!70,line width=.7pt] (4.65,-.2)--(4.65,3.3);
+  \end{scope}
+  \draw[Ink,very thick] (-.15,1.25)--(.45,2.75)--(2.45,3.08)--(4.65,2.88)--(5.55,1.62)--(5.05,.22)--(2.75,.02)--(.35,.25)--cycle;
+  \foreach \x/\y in {
+    .05/1.35,.28/1.82,.43/.72,.56/2.35,.76/1.28,.81/2.58,
+    1.02/.67,1.14/1.42,1.37/2.24,1.58/.43,1.77/1.05,2.02/2.62,
+    2.70/.52,2.83/1.40,3.02/2.49,3.28/.83,3.47/1.71,3.61/2.58,
+    3.91/.48,4.05/1.25,4.22/2.18,4.49/1.62,
+    4.79/.63,4.96/1.31,5.12/2.06,5.34/1.53}
+    \fill[Ink] (\x,\y) circle (1.55pt);
+  \node[font=\scriptsize\bfseries,text=Coral,fill=white,inner sep=1.5pt] at (2.38,1.48) {$\mathcal R_3$ missed};
+  \node[font=\scriptsize,text=Slate] at (2.72,-.38) {$N=26$ samples};
+\end{tikzpicture}
+
+\column{0.48\textwidth}
+\centering
+\textbf{Active-set-informed allocation}\\[-0.05cm]
+
+\begin{tikzpicture}[x=.88cm,y=.82cm]
+  \begin{scope}
+    \clip (-.15,1.25)--(.45,2.75)--(2.45,3.08)--(4.65,2.88)--(5.55,1.62)--(5.05,.22)--(2.75,.02)--(.35,.25)--cycle;
+    \fill[Sky] (-.3,-.2) rectangle (.9,3.3);
+    \fill[PaleGold] (.9,-.2) rectangle (2.2,3.3);
+    \fill[Coral,opacity=.18] (2.2,-.2) rectangle (2.55,3.3);
+    \fill[Mist] (2.55,-.2) rectangle (3.75,3.3);
+    \fill[Teal,opacity=.14] (3.75,-.2) rectangle (4.65,3.3);
+    \fill[Gold,opacity=.25] (4.65,-.2) rectangle (5.8,3.3);
+    \draw[Slate!70,line width=.7pt] (.9,-.2)--(.9,3.3);
+    \draw[Slate!70,line width=.7pt] (2.2,-.2)--(2.2,3.3);
+    \draw[Coral,line width=1.15pt] (2.55,-.2)--(2.55,3.3);
+    \draw[Slate!70,line width=.7pt] (3.75,-.2)--(3.75,3.3);
+    \draw[Slate!70,line width=.7pt] (4.65,-.2)--(4.65,3.3);
+  \end{scope}
+  \draw[Ink,very thick] (-.15,1.25)--(.45,2.75)--(2.45,3.08)--(4.65,2.88)--(5.55,1.62)--(5.05,.22)--(2.75,.02)--(.35,.25)--cycle;
+  \foreach \x/\y in {.46/1.45,1.48/1.73,2.37/1.36,3.08/1.76,4.18/1.46,5.02/1.34}
+    \fill[Coral] (\x,\y) circle (2.3pt);
+  \foreach \x/\idx in {.46/1,1.48/2,2.37/3,3.08/4,4.18/5,5.02/6}
+    \node[font=\tiny\bfseries,text=Ink,fill=white,inner sep=.8pt] at (\x,2.42) {$\mathcal R_{\idx}$};
+  \node[font=\scriptsize,text=Slate] at (2.72,-.38) {$N=6$ samples};
+\end{tikzpicture}
+\end{columns}
+
+\vspace{-0.05cm}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\centering\scriptsize
+$p_j=\operatorname{vol}(\mathcal R_j)/\operatorname{vol}(\Xr)$,
+\qquad
+$\mathbb{P}(N_j=0)=(1-p_j)^N$.
+
+Small-volume regions require a large $N$ before they are likely to appear.
+
+\column{0.48\textwidth}
+\centering\scriptsize
+Allocate $N_j\ge 1$ to every discovered region, with
+$N=\sum_j N_j$.
+
+The label budget represents policy regimes instead of region volume.
+\end{columns}
+
+\vspace{0.10cm}
+\begin{center}
+\colorbox{PaleGold}{\parbox{0.91\textwidth}{\centering\textbf{The gain comes from stratification: fewer OCP solves can cover more discovered active-set.}}}
+\end{center}
+\note{The two drawings use the same schematic partition. Uniform sampling assigns probability in proportion to volume, so a narrow active-set region can remain unseen even with many samples. The right-hand strategy assumes that candidate regions have already been identified, for example from solver active sets or an exploration procedure, and allocates at least one exact label to each. It does not guarantee discovery of every active set of a nonlinear problem.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
 \begin{frame}{From an optimal-control problem to a feedback policy}
 Consider the constrained system
 \[
@@ -209,7 +303,7 @@ where $z$ contains the predicted states and inputs. The first optimal input defi
   \pi^\star(x)=E z^\star(x)=u_0^\star(x).
 \]
 
-Repeated evaluation of this law produces the \textbf{expert closed loop}
+Repeated evaluation of this law produces the expert closed loop
 \[
   x_{k+1}^\star=f\!\left(x_k^\star,\pi^\star(x_k^\star)\right).
 \]
@@ -259,7 +353,7 @@ The closed-loop imitation risk and the resulting dataset-design problem are
 \toprule
 Structure & Mathematical object & Possible use in sampling \\
 \midrule
-Feasible domain & $\mathcal X_N$ from slide 4 and $\Xr\subseteq\mathcal X_N$ & Restrict $q$ to the chosen recursively feasible training set $\Xr$ \\
+Feasible domain & $\mathcal X_N$ from slide 5 and $\Xr\subseteq\mathcal X_N$ & Restrict $q$ to the chosen recursively feasible training set $\Xr$ \\
 Active constraints & active set $\mathcal A(x)$ and multipliers $\lambda^\star(x)$ & Detect changes of local policy regime \\
 Sensitivity & $D_x z^\star(x)$ from the KKT equations & Augment labels and measure local complexity \\
 Closed-loop dynamics & occupancy measure $d_\theta^T$ & Evaluate error on states the deployed policy will visit \\
@@ -274,7 +368,7 @@ Certificates & Lyapunov, barrier, terminal-set, or robustness margins & Weight r
 
 % -----------------------------------------------------------------------------
 \begin{frame}{The feasible domain restricts the sampling law}
-The OCP in slide 4 defines its $N$-step feasible set
+The OCP in slide 5 defines its $N$-step feasible set
 \[
   \mathcal X_N=\left\{x\in\mathcal X:\exists z\ \text{such that}\ c(z;x)=0,\ g(z;x)\le0\right\}.
 \]
@@ -286,7 +380,7 @@ When $0<\operatorname{vol}(\Xr)<\infty$, the natural baseline is
 \[
   q_{\mathrm{unif}}(x)=\frac{\mathbf 1_{\Xr}(x)}{\operatorname{vol}(\Xr)}.
 \]
-Uniform sampling covers volume, but the objective on slide 5 depends on how difficult $\pi^\star$ is to approximate and on which states $d_\theta^T$ visits.
+Uniform sampling covers volume, but the objective on slide 6 depends on how difficult $\pi^\star$ is to approximate and on which states $d_\theta^T$ visits.
 
 \vspace{0.2cm}
 \colorbox{PaleGold}{\parbox{0.9\textwidth}{\centering
@@ -306,7 +400,7 @@ Under LICQ, strict complementarity, and a second-order sufficient condition, $z^
 
 The critical set is
 \[
-  \mathcal B=Xr\setminus\bigcup_j\operatorname{int}(\mathcal R_j),
+  \mathcal B=\Xr\setminus\bigcup_j\operatorname{int}(\mathcal R_j),
 \]
 which contains active-set transitions and points where the KKT regularity condition fails.
 
